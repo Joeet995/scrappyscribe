@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrappyScribe - Upload Audio</title>
+   
+    <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+        .form-container { max-width: 500px; }
+        .form-field { margin-bottom: 20px; }
+        button { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+    .messages {
+        list-style: none;
+        padding: 0;
+    }
+    .success {
+        background-color: #d4edda;
+        color: #155724;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #c3e6cb;
+        border-radius: 4px;
+    }
+    
+    </style>
+</head>
+<body>
+    <h1>Upload an Audio File</h1>
+        {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <div class="form-container">
+        <!-- The form tag must have enctype="multipart/form-data" to handle file uploads! -->
+        <form method="post" enctype="multipart/form-data">
+            <!-- CSRF token is a crucial security feature in Django for all POST forms -->
+            {% csrf_token %}
+            
+            <!-- Render the form fields. {{ form.as_p }} renders them wrapped in <p> tags -->
+            <div class="form-field">
+                {{ form.as_p }}
+            </div>
+            
+            <!-- The submit button -->
+            <button type="submit">Upload File</button>
+        </form>
+    </div>
+</body>
+</html>

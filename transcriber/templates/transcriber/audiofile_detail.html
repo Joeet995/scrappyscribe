@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScrappyScribe - Detail</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; }
+        .message { 
+            background-color: #d4edda; color: #155724; padding: 10px; 
+            margin-bottom: 20px; border: 1px solid #c3e6cb; border-radius: 4px; 
+        }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .metadata { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;}
+        textarea { 
+            width: 100%; 
+            height: 200px; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            margin-bottom: 15px; 
+            font-family: monospace; 
+        }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .download-btn { background-color: #28a745; }
+        .download-btn:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Audio File Details: {{ audio_file.original_filename }}</h1>
+        
+        <!-- Display messages -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <!-- Display file metadata -->
+        <div class="metadata">
+            <p><strong>Status:</strong> {{ audio_file.get_status_display }}</p>
+            <p><strong>Uploaded:</strong> {{ audio_file.uploaded_at }}</p>
+            {% if audio_file.file %}
+            <p><strong>File:</strong> <a href="{{ audio_file.file.url }}" target="_blank">Download Original</a></p>
+            {% endif %}
+        </div>
+
+        <!-- Form for correcting the transcription -->
+        <h2>Corrected Transcription</h2>
+        <p>Edit the text below to fix any errors from the automatic transcription.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            <textarea name="corrected_text" placeholder="Corrected text will appear here...">{{ audio_file.corrected_transcription | default:audio_file.raw_transcription }}</textarea>
+            <br>
+            <button type="submit">Save Corrections</button>
+        </form>
+
+        <!-- Simple Annotation Buttons (Placeholder for now) -->
+        <h2>Quick Annotation</h2>
+        <p>Select text in the box above and click a tag to mark it.</p>
+        <button type="button" onclick="alert('Annotation feature coming next!')">Tag as Key Term</button>
+        <button type="button" onclick="alert('Annotation feature coming next!')">Mark as Error</button>
+
+        <br><br>
+        <a href="{% url 'transcriber:upload_audio' %}">&larr; Back to Upload</a>
+    </div>
+</body>
+</html>
