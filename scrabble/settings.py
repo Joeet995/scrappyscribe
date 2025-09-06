@@ -28,14 +28,48 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-dev-key-here-keep-it-secret')
+SECRET_KEY = os.getenv('SECRET_KEY', '3-z&3s0ppwi0qp8_(5(w-t2pil)ei_lj2g9v+@dow3rwt_7h(q')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = (os.getenv('DEBUG', '').lower() in ['true', '1', 'yes', 'on'])
 
 # Allow all hosts that Heroku might assign, and localhost for dev.
 ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
+
+# Security Settings for Production
+# Parse the ALLOWED_HOSTS list to create CSRF_TRUSTED_ORIGINS and CORS settings
+# This dynamically creates the correct URLs
+allowed_hosts_list = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+CSRF_TRUSTED_ORIGINS = []
+CORS_ALLOWED_ORIGINS = [] # Useful if you add a frontend later
+
+for host in allowed_hosts_list:
+    if host:  # Ensure the host string is not empty
+        # Add both HTTP and HTTPS versions for good measure
+        CSRF_TRUSTED_ORIGINS.append(f"https://{host}")
+        CSRF_TRUSTED_ORIGINS.append(f"http://{host}") # For local dev without HTTPS
+        CORS_ALLOWED_ORIGINS.append(f"https://{host}")
+
+
+# For Heroku random domain, also allow their base domain for safety.
+CSRF_TRUSTED_ORIGINS.append("https://*.herokuapp.com")
+
+
+# Force HTTPS in production (redirect all HTTP traffic to HTTPS)
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    # Other security settings that should only be enabled in production
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Prevents the site from being embedded in an iframe (clickjacking protection)
+    X_FRAME_OPTIONS = 'DENI'
 
 # Application definition
 
@@ -169,3 +203,11 @@ STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Enable compression and caching for WhiteNoise
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+print("="*50)
+print("DEBUG SETTINGS DIAGNOSTICS:")
+print(f"DEBUG value: {DEBUG}")
+print(f"DEBUG type: {type(DEBUG)}")
+print(f"SECURE_SSL_REDIRECT: {os.getenv('SECURE_SSL_REDIRECT', 'Not set')}")
+print(f"Environment DEBUG: {os.getenv('DEBUG', 'Not set')}")
+print("="*50)

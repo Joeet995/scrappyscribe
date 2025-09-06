@@ -71,3 +71,81 @@
     </div>
 </body>
 </html>
+ <h2>Quick Annotation</h2>
+        <p>Select text in the box above and click a tag to mark it.</p>
+        <button type="button" id="tag-keyterm" class="annotation-btn">Tag as Key Term</button>
+        <button type="button" id="tag-error" class="annotation-btn">Mark as Error</button>
+
+        <!-- A div to show the current annotation -->
+        <div id="annotation-display" style="margin-top: 15px; padding: 10px; background: #e9ecef; display: none;">
+            <p><strong>Current Annotation:</strong> <span id="annotation-text"></span> <em>(<span id="annotation-type"></span>)</em></p>
+        </div>
+
+        <br><br>
+        <a href="{% url 'transcriber:upload_audio' %}">&larr; Back to Upload</a>
+    </div>
+
+    <!-- JavaScript for the annotation functionality -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.querySelector('textarea[name="corrected_text"]');
+            const keyTermButton = document.getElementById('tag-keyterm');
+            const errorButton = document.getElementById('tag-error');
+            const annotationDisplay = document.getElementById('annotation-display');
+            const annotationTextSpan = document.getElementById('annotation-text');
+            const annotationTypeSpan = document.getElementById('annotation-type');
+
+            let selectedText = '';
+            let selectionStart = 0;
+            let selectionEnd = 0;
+
+            // Function to capture the selected text and its position
+            textarea.addEventListener('mouseup', function() {
+                selectedText = window.getSelection().toString();
+                if (selectedText) {
+                    selectionStart = textarea.selectionStart;
+                    selectionEnd = textarea.selectionEnd;
+                    // Show the annotation buttons as active by changing their style
+                    // keyTermButton.style.display = 'inline-block';
+                    // errorButton.style.display = 'inline-block';
+                }
+            });
+
+            // Function to wrap the selected text with a tag
+            function tagText(tagType) {
+                if (!selectedText) {
+                    alert('Please select some text first.');
+                    return;
+                }
+
+                // Define the tagging pattern
+                let taggedText = '';
+                if (tagType === 'keyterm') {
+                    taggedText = `<keyterm>${selectedText}</keyterm>`;
+                } else if (tagType === 'error') {
+                    taggedText = `<error>${selectedText}</error>`;
+                }
+
+                // Get the current text in the textarea
+                let currentText = textarea.value;
+                // Replace the selected text with the tagged version
+                let newText = currentText.substring(0, selectionStart) + taggedText + currentText.substring(selectionEnd);
+                // Update the textarea
+                textarea.value = newText;
+
+                // Show what was just tagged
+                annotationTextSpan.textContent = selectedText;
+                annotationTypeSpan.textContent = (tagType === 'keyterm') ? 'Key Term' : 'Error';
+                annotationDisplay.style.display = 'block';
+
+                // Reset the selection
+                selectedText = '';
+            }
+
+            // Add event listeners to the buttons
+            keyTermButton.addEventListener('click', () => tagText('keyterm'));
+            errorButton.addEventListener('click', () => tagText('error'));
+        });
+    </script>
+</body>
+</html>
