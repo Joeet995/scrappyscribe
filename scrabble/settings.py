@@ -28,12 +28,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*z6h3xiysd)h@%o^ev2!7l*r3x8j3(6-vfucfse^kt!srgdv^!'
+SECRET_KEY = os.getenv('SECRET_KEY', 'your-default-dev-key-here-keep-it-secret')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+# Allow all hosts that Heroku might assign, and localhost for dev.
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'scrabble.urls'
@@ -132,3 +134,38 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+import dj_database_url
+
+# Get the default database connection string from the environment variable
+# Default to SQLite for development
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'))
+
+# Configure the database based on the URL
+if DATABASE_URL.startswith('postgres://'):
+    # We are using PostgreSQL (like on Heroku)
+    # Parse the URL and add the ssl_require option for production
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            ssl_require=not DEBUG  # Only require SSL in production
+        )
+    }
+else:
+    # We are using SQLite (for local development)
+    # Parse the URL without any PostgreSQL-specific options
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+            # Do NOT pass ssl_require for SQLite
+        )
+    }
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+# The directory where collected static files will be placed for production.
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Enable compression and caching for WhiteNoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
